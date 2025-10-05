@@ -1,7 +1,6 @@
-#version: '7.17.3'
+version: '3.8'
 
 services:
-
   authorization-app:
     build: .
     container_name: authorization-service
@@ -12,6 +11,50 @@ services:
       - ./logs:/app/logs
     networks:
       - elk-network
+      - monitoring-network
+    environment:
+
+      JAVA_TOOL_OPTIONS: "-Xmx1024m -Xms256m"
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+      - prometheus_data:/prometheus
+    command: --config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle
+    networks:
+      - monitoring-network
+    depends_on:
+      - authorization-app
+
+  grafana:
+    image: grafana/grafana:10.1.5
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring-network
+    depends_on:
+      - prometheus
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml
+    command: --config.file=/etc/alertmanager/config.yml
+    networks:
+      - monitoring-network
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
@@ -77,7 +120,13 @@ services:
 volumes:
   elasticsearch-data:
     driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
 
 networks:
   elk-network:
+    driver: bridge
+  monitoring-network:
     driver: bridge

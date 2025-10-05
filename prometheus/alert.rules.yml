@@ -1,0 +1,38 @@
+groups:
+  - name: application-alerts
+    rules:
+      - alert: HighMemoryUsage
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.8
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Высокое потребление памяти в приложении {{ $labels.instance }}"
+          description: "Использование кучи превысило 80% в течение 1 минуты. Текущее использование: {{ humanize $value }}%"
+
+      - alert: AppDown
+        expr: up{job="spring-boot-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Приложение {{ $labels.instance }} не работает"
+          description: "Сервис Spring Boot приложения недоступен в течение 1 минуты."
+
+      - alert: HighRequestErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{status=~"4xx|5xx"}[5m])) by (instance) / sum(rate(http_server_requests_seconds_count[5m])) by (instance) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая частота ошибок HTTP в приложении {{ $labels.instance }}"
+          description: "Более 10% запросов завершились ошибкой (4xx или 5xx) за последние 5 минут."
+
+      - alert: CustomRequestsIncreasingFast
+        expr: rate(app_requests_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Кастомные запросы увеличиваются быстро на {{ $labels.instance }}"
+          description: "Количество кастомных запросов превышает 10 в секунду за последние 5 минут."

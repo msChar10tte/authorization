@@ -17,7 +17,7 @@ public class UserRepository {
     public UserRepository() {
 
         Map<String, List<Authorities>> johnCredentials = new ConcurrentHashMap<>();
-        johnCredentials.put("pass", Arrays.asList(Authorities.READ, Authorities.WRITE));
+        johnCredentials.put("password", Arrays.asList(Authorities.READ, Authorities.WRITE));
         users.put("john", johnCredentials);
 
         Map<String, List<Authorities>> adminCredentials = new ConcurrentHashMap<>();

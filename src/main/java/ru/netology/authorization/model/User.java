@@ -3,6 +3,8 @@ package ru.netology.authorization.model;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.Objects;
+
 public class User {
 
     @NotBlank(message = "Username cannot be empty")
@@ -43,5 +45,18 @@ public class User {
                 "user='" + user + '\'' +
                 ", password='" + "[PROTECTED]" + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user1 = (User) o;
+        return Objects.equals(user, user1.user) && Objects.equals(password, user1.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, password);
     }
 }

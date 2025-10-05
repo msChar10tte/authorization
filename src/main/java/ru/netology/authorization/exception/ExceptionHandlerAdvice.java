@@ -1,5 +1,7 @@
 package ru.netology.authorization.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,17 +14,19 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class ExceptionHandlerAdvice {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlerAdvice.class);
+
     @ExceptionHandler(InvalidCredentials.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST) // HTTP 400
     public ResponseEntity<String> handleInvalidCredentials(InvalidCredentials e) {
-        System.err.println("InvalidCredentials: " + e.getMessage());
+        logger.error("InvalidCredentials: " + e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnauthorizedUser.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED) // HTTP 401
     public ResponseEntity<String> handleUnauthorizedUser(UnauthorizedUser e) {
-        System.err.println("UnauthorizedUser: " + e.getMessage());
+        logger.error("UnauthorizedUser: " + e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
@@ -32,7 +36,7 @@ public class ExceptionHandlerAdvice {
         String errorMessage = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        System.err.println("Validation error: " + errorMessage);
+        logger.error("Validation error: " + errorMessage);
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 }
